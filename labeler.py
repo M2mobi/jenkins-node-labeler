@@ -7,9 +7,10 @@ from os import environ as env
 from os import popen as cmd
 from lxml import etree
 
-username     = env['JENKINS_USERNAME']
-password     = env['JENKINS_APIKEY']
-jenkins_host = env['JENKINS_HOST']
+username       = env['JENKINS_USERNAME']
+password       = env['JENKINS_APIKEY']
+jenkins_host   = env['JENKINS_HOST']
+default_labels = env['JENKINS_ADDITIONAL_LABELS']
 
 def get_macos_version(version_regex):
     os_version_cmd = cmd('sw_vers -productVersion').read().strip()
@@ -33,11 +34,12 @@ def get_hostname():
     return hostname
 
 def get_new_config(server, node, labels):
+    labels_str = ' '.join(labels) + ' ' + default_labels
     config_string = server.get_node_config(node)
     config = etree.fromstring(bytes(config_string, encoding='utf8'))
     for child in config:
         if child.tag == 'label':
-            child.text = ' '.join(labels)
+            child.text = labels_str
     return etree.tostring(config).decode("utf-8")
 
 version_regex = re.compile('([0-9]+\.[0-9]+)')
